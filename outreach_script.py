@@ -7,14 +7,14 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 # --- CONFIGURATION ---
-DAILY_LIMIT_PER_ACCOUNT = 450
+DAILY_LIMIT_PER_ACCOUNT = 10
 LOG_FILE = "sent_emails_log.txt"
 # Adjusted range to cover all 30 batches
-BATCH_FILES = [f"India_Schools_Directory_Batch_{i}_50k.csv" for i in range(1, 31)]
+BATCH_FILES = [f"India_Schools_Directory_Batch_{i}_50k.csv" for i in range(1, 2)]
 
 # Gather all 5 accounts from GitHub Secrets
 ACCOUNTS = []
-for i in range(1, 6):
+for i in range(1, 2):
     email = os.getenv(f"EMAIL_{i}")
     password = os.getenv(f"PASS_{i}")
     if email and password:
