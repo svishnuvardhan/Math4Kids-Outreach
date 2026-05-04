@@ -1,13 +1,19 @@
-name: Multi-Account Outreach
+name: Daily School Outreach
 
 on:
   schedule:
-    - cron: '20 19 * * *' # 5:00 AM Mississauga time
-  workflow_dispatch:
+    # Runs at 19:20 UTC (3:20 PM local Mississauga time)
+    - cron: '20 19 * * *'
+  workflow_dispatch: # Allows you to trigger it manually for testing
 
 jobs:
   outreach:
     runs-on: ubuntu-latest
+    # Required for the Create Pull Request action to work
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -20,16 +26,26 @@ jobs:
       - name: Install Dependencies
         run: pip install pandas
 
-      - name: Execute Script
+      - name: Execute Outreach Script
         env:
           EMAIL_1: ${{ secrets.EMAIL_1 }}
           PASS_1: ${{ secrets.PASS_1 }}
         run: python outreach_script.py
 
-      - name: Commit Progress Log
-        run: |
-          git config --global user.name "Outreach-Bot"
-          git config --global user.email "outreach@github-actions.com"
-          git add sent_emails_log.txt
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update logs [skip ci]"
-          git push
+      # This creates a Pull Request specifically for the log updates
+      - name: Create Pull Request for Logs
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Update outreach logs [skip ci]"
+          committer: Outreach-Bot <outreach@github-actions.com>
+          author: Outreach-Bot <outreach@github-actions.com>
+          signoff: false
+          branch: logs/update
+          delete-branch: true
+          title: "🤖 Update outreach logs"
+          body: "Automated log update from outreach workflow. Review the schools contacted today."
+          labels: |
+            automated-update
+            logs
+        if: ${{ always() }} # Ensures the PR is created even if some emails fail
